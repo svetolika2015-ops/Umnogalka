@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Космическая Академия Умножения</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Шрифт Nunito для дружелюбного детского интерфейса -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        space: {
+                            950: '#070919',
+                            900: '#0D112B',
+                            800: '#161C42',
+                            700: '#232B5C',
+                        },
+                        neon: {
+                            cyan: '#00F0FF',
+                            purple: '#B026FF',
+                            pink: '#FF2A85',
+                            yellow: '#FFD600',
+                            green: '#00E676',
+                            coral: '#FF5252'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'float-fast': 'float 2.2s ease-in-out infinite',
+                        'twinkle': 'twinkle 3s ease-in-out infinite',
+                        'bounce-short': 'bounceShort 0.5s ease-out',
+                        'shake': 'shake 0.45s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'spin-slow': 'spin 18s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-10px) rotate(2deg)' },
+                        },
+                        twinkle: {
+                            '0%, 100%': { opacity: 0.25, transform: 'scale(0.8)' },
+                            '50%': { opacity: 1, transform: 'scale(1.2)' },
+                        },
+                        bounceShort: {
+                            '0%, 100%': { transform: 'translateY(0) scale(1)' },
+                            '40%': { transform: 'translateY(-18px) scale(1.08)' },
+                            '70%': { transform: 'translateY(-5px) scale(0.98)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-3px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(5px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-7px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(7px, 0, 0)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(0, 240, 255, 0.4)' },
+                            '50%': { boxShadow: '0 0 28px rgba(0, 240, 255, 0.85)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Космический фон и тактильные 3D-кнопки */
+        body {
+            background: radial-gradient(ellipse at top, #181F4B 0%, #0A0D24 55%, #050714 100%);
+            min-height: 100vh;
+            color: #FFFFFF;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-3d {
+            transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+        }
+        .btn-3d:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.4) !important;
+        }
+
+        .glass-panel {
+            background: rgba(22, 28, 66, 0.72);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+        }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D112B;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2D3775;
+            border-radius: 999px;
+        }
+
+        /* Анимация взлёта ракеты */
+        @keyframes rocketLaunch {
+            0% { transform: translateY(0) scale(1); }
+            20% { transform: translateY(8px) scale(0.95); }
+            100% { transform: translateY(-600px) scale(1.2); opacity: 0; }
+        }
+        .rocket-launching {
+            animation: rocketLaunch 1.3s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between relative">
+
+    <!-- Слой мерцающих звёзд на фоне -->
+    <div id="stars-layer" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ СТАТУСА (HUD) -->
+    <header class="relative z-20 w-full max-w-6xl mx-auto px-3 sm:px-6 pt-3 pb-2">
+        <div class="glass-panel rounded-3xl px-4 py-2.5 sm:px-6 sm:py-3 flex flex-wrap items-center justify-between gap-2 shadow-xl">
+            
+            <!-- Логотип и Звание -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('map')">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-neon-cyan to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 shrink-0">
+                    <!-- Иконка ракеты -->
+                    <svg class="w-7 h-7 text-space-950" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13.13 22.19L11.5 18.36C13.07 17.78 14.54 17 15.9 16.09L13.13 22.19M5.64 12.5L1.81 10.87L7.91 8.1C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39C21.61 2.39 16.66 .269 11 5.93C8.81 8.12 7.5 10.53 6.65 12.64C6.37 13.39 6.56 14.21 7.11 14.77L9.24 16.89C9.79 17.45 10.61 17.63 11.36 17.35C13.5 16.53 15.88 15.19 18.07 13C23.73 7.34 21.61 2.39 21.61 2.39M14.54 9.46C13.76 8.68 13.76 7.41 14.54 6.63S16.59 5.85 17.37 6.63C18.14 7.41 18.15 8.68 17.37 9.46C16.59 10.24 15.32 10.24 14.54 9.46M8.88 16.53L7.47 15.12L8.88 16.53M6.24 22L9.88 18.36C9.54 18.27 9.21 18.12 8.91 17.91L4.83 22H6.24M2 22H3.41L8.18 17.24L6.76 15.83L2 20.59V22M2 19.17L6.09 15.09C5.88 14.79 5.73 14.47 5.64 14.12L2 17.76V19.17Z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-xl font-black tracking-tight text-white leading-tight">
+                        Академия Умножения
+                    </h1>
+                    <div class="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-neon-cyan">
+                        <span>Звание:</span>
+                        <span id="hud-rank" class="bg-cyan-500/20 border border-cyan-400/40 px-2 py-0.5 rounded-full text-cyan-200">Кадет</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Счётчики ресурсов и кнопка звука -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Всего звёзд -->
+                <div class="flex items-center gap-1.5 bg-space-900/90 border border-yellow-400/30 px-3 py-1.5 rounded-2xl" title="Собранные звёзды на планетах">
+                    <svg class="w-5 h-5 text-neon-yellow shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                    <span id="hud-stars" class="font-extrabold text-sm sm:text-base text-yellow-300">0/27</span>
+                </div>
+
+                <!-- Звёздные кристаллы -->
+                <div class="flex items-center gap-1.5 bg-space-900/90 border border-purple-400/40 px-3 py-1.5 rounded-2xl shadow-inner" title="Звёздные кристаллы для Ангара">
+                    <svg class="w-5 h-5 text-neon-pink shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L4 9l8 13 8-13-8-7zm0 3.3L17.1 9 12 17.2 6.9 9 12 5.3z"/>
+                    </svg>
+                    <span id="hud-crystals" class="font-extrabold text-sm sm:text-base text-pink-300">0</span>
+                </div>
+
+                <!-- Кнопка звука -->
+                <button id="sound-toggle" onclick="toggleSound()" class="p-2.5 rounded-2xl bg-space-800 hover:bg-space-700 border border-white/15 text-cyan-300 transition active:scale-95" title="Включить/выключить звук">
+                    <svg id="icon-sound-on" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg>
+                    <svg id="icon-sound-off" class="w-5 h-5 hidden text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <line x1="23" y1="9" x2="17" y2="15"></line>
+                        <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- НАВИГАЦИОННЫЕ ВКЛАДКИ -->
+        <nav class="grid grid-cols-3 gap-2 sm:gap-3 mt-3">
+            <button onclick="switchTab('map')" id="nav-map" class="nav-btn btn-3d py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-base flex items-center justify-center gap-2 bg-gradient-to-b from-cyan-400 to-blue-600 text-space-950 shadow-[0_4px_0_#1e3a8a]">
+                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <span>Карта Планет</span>
+            </button>
+
+            <button onclick="switchTab('radar')" id="nav-radar" class="nav-btn btn-3d py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-base flex items-center justify-center gap-2 bg-space-800 text-gray-200 border border-white/15 shadow-[0_4px_0_#0b0e24]">
+                <svg class="w-5 h-5 shrink-0 text-neon-green" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
+                <span>Радар 10×10</span>
+            </button>
+
+            <button onclick="switchTab('hangar')" id="nav-hangar" class="nav-btn btn-3d py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-base flex items-center justify-center gap-2 bg-space-800 text-gray-200 border border-white/15 shadow-[0_4px_0_#0b0e24]">
+                <svg class="w-5 h-5 shrink-0 text-neon-pink" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span>Ангар и Призы</span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- ОСНОВНАЯ РАБОЧАЯ ОБЛАСТЬ -->
+    <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 py-3 flex flex-col">
+
+        <!-- ========================================================= -->
+        <!-- ЭКРАН 1: КАРТА ПЛАНЕТ + МАСКОТ РОБО-КОТ                   -->
+        <!-- ========================================================= -->
+        <section id="view-map" class="flex-1 flex flex-col gap-4">
+            
+            <!-- Блок приветствия с Робо-Котом и текущим звездолётом -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <!-- Анимированный SVG Робо-Кот -->
+                    <div id="map-mascot-container" class="w-20 h-20 sm:w-24 sm:h-24 shrink-0 animate-float cursor-pointer" onclick="petMascot()">
+                        <!-- Вставляется через JS -->
+                    </div>
+                    <div>
+                        <div class="inline-block bg-purple-500/30 border border-purple-400/40 text-purple-200 text-xs font-bold px-2.5 py-0.5 rounded-full mb-1">
+                            Бортовой компьютер: Робо-Кот Мурзик
+                        </div>
+                        <p id="map-speech" class="text-sm sm:text-lg font-extrabold text-white leading-snug">
+                            Мяу-привет, Кадет! Выбери любую планету ниже, чтобы зарядить наш звездолёт знаниями!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Мини-витрина экипированного корабля и питомца -->
+                <div class="flex items-center gap-3 bg-space-900/80 border border-white/10 rounded-2xl px-4 py-2.5 shrink-0 w-full md:w-auto justify-between md:justify-end">
+                    <div class="text-right">
+                        <div class="text-xs text-gray-400 font-bold">Твой звездолёт</div>
+                        <div id="equipped-ship-name" class="text-sm font-extrabold text-neon-cyan">Стартовый Челнок</div>
+                    </div>
+                    <div id="equipped-ship-preview" class="w-12 h-12 flex items-center justify-center animate-float-fast"></div>
+                </div>
+            </div>
+
+            <!-- Сетка Планет (от 2 до 9 + Финальный Босс) -->
+            <div id="planets-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4 pb-6">
+                <!-- Генерируется динамически из JS -->
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ЭКРАН 2: ИГРОВАЯ МИССИЯ / БИТВА С АСТЕРОИДАМИ              -->
+        <!-- ========================================================= -->
+        <section id="view-game" class="hidden flex-1 flex flex-col justify-between gap-3 pb-4">
+            
+            <!-- Верхняя панель миссии: Кнопка выхода, Прогресс, Топливо ракеты (Комбо) -->
+            <div class="glass-panel rounded-3xl p-3 sm:p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-2">
+                    <button onclick="exitMission()" class="btn-3d bg-space-800 hover:bg-space-700 text-gray-200 border border-white/15 px-3 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                        <span>← На карту</span>
+                    </button>
+
+                    <div class="text-center">
+                        <span id="game-planet-title" class="font-black text-base sm:text-xl text-neon-yellow">Планета 2</span>
+                        <span id="game-question-counter" class="ml-2 text-xs sm:text-sm font-bold bg-white/10 px-2.5 py-0.5 rounded-full text-cyan-200">1 / 10</span>
+                    </div>
+
+                    <!-- Переключатель режима ввода: Кнопки / Пульт (Цифры) -->
+                    <button id="input-mode-toggle" onclick="toggleInputMode()" class="btn-3d bg-indigo-600/80 hover:bg-indigo-500 border border-indigo-400/40 text-white px-3 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5" title="Переключить режим ответа">
+                        <span id="input-mode-label">🔢 Пульт</span>
+                    </button>
+                </div>
+
+                <!-- Шкала Топлива Ракеты и Комбо -->
+                <div class="flex items-center gap-3 bg-space-950/70 p-2 rounded-2xl border border-white/10">
+                    <div id="fuel-rocket-icon" class="w-8 h-8 shrink-0 transition-transform">
+                        <!-- Мини-ракета -->
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between text-xs font-extrabold mb-1">
+                            <span class="text-cyan-300">Топливо гиперпрыжка</span>
+                            <span id="combo-badge" class="text-neon-yellow">Серия: 0</span>
+                        </div>
+                        <div class="w-full h-3.5 bg-space-800 rounded-full overflow-hidden p-0.5 border border-white/10">
+                            <div id="fuel-bar" class="h-full rounded-full bg-gradient-to-r from-neon-cyan via-neon-green to-neon-yellow transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Центральная Арена: Астероид с примером + Робо-Кот + Визуальная подсказка -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6 flex-1 flex flex-col items-center justify-center relative overflow-hidden">
+                
+                <!-- Всплывающий эффект "+10 кристаллов" или "КОМБО!" -->
+                <div id="floating-feedback" class="pointer-events-none absolute top-4 right-4 font-black text-lg sm:text-2xl text-neon-yellow opacity-0 transition-all duration-500"></div>
+
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4 sm:gap-8 w-full max-w-3xl">
+                    
+                    <!-- Маскот в бою -->
+                    <div class="flex flex-col items-center text-center md:w-1/3">
+                        <div id="game-mascot" class="w-20 h-20 sm:w-28 sm:h-28 transition-transform"></div>
+                        <div id="game-mascot-bubble" class="mt-2 bg-space-900/90 border border-cyan-400/30 rounded-2xl px-3 py-2 text-xs sm:text-sm font-bold text-cyan-100 shadow-md">
+                            Сбей астероид правильным ответом!
+                        </div>
+                    </div>
+
+                    <!-- Астероид с математическим примером -->
+                    <div class="flex flex-col items-center justify-center md:w-2/3">
+                        <div id="asteroid-card" class="relative w-full max-w-sm bg-gradient-to-b from-space-700 to-space-900 border-4 border-cyan-400/50 rounded-[2rem] p-5 sm:p-7 text-center shadow-[0_0_35px_rgba(0,240,255,0.2)] transition-all">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-cyan-300 mb-1">Вычисли энергию</div>
+                            <div id="question-text" class="text-4xl sm:text-6xl font-black text-white tracking-wide drop-shadow">
+                                3 × 4 = ?
+                            </div>
+                        </div>
+
+                        <!-- Визуальная подсказка (появляется при ошибке или по кнопке "Подсказка") -->
+                        <div id="visual-hint-box" class="hidden mt-3 w-full max-w-md bg-space-950/90 border border-yellow-400/40 rounded-2xl p-3 text-center">
+                            <div id="visual-hint-caption" class="text-xs font-extrabold text-yellow-300 mb-2">
+                                3 группы по 4 звезды:
+                            </div>
+                            <div id="visual-hint-dots" class="flex flex-wrap justify-center gap-2"></div>
+                        </div>
+
+                        <button id="hint-btn" onclick="showVisualHint()" class="mt-3 text-xs sm:text-sm font-bold text-yellow-300 hover:text-yellow-200 underline decoration-dotted underline-offset-4 flex items-center gap-1">
+                            <span>💡 Показать подсказку (группы звёзд)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Панель ввода ответа: Вариант А (4 большие кнопки) -->
+            <div id="answers-choice-panel" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <!-- 4 кнопки генерируются JS -->
+            </div>
+
+            <!-- Панель ввода ответа: Вариант Б (Цифровой пульт для профи) -->
+            <div id="answers-numpad-panel" class="hidden glass-panel rounded-3xl p-3 sm:p-4 max-w-md mx-auto w-full">
+                <div class="flex items-center justify-between bg-space-950 border-2 border-cyan-400/50 rounded-2xl px-4 py-2 mb-3">
+                    <span class="text-xs font-bold text-gray-400">Твой ответ:</span>
+                    <span id="numpad-display" class="text-3xl font-black text-neon-cyan min-h-[2.25rem]"></span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="numpadPress('1')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">1</button>
+                    <button onclick="numpadPress('2')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">2</button>
+                    <button onclick="numpadPress('3')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">3</button>
+                    <button onclick="numpadPress('4')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">4</button>
+                    <button onclick="numpadPress('5')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">5</button>
+                    <button onclick="numpadPress('6')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">6</button>
+                    <button onclick="numpadPress('7')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">7</button>
+                    <button onclick="numpadPress('8')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">8</button>
+                    <button onclick="numpadPress('9')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">9</button>
+                    <button onclick="numpadClear()" class="btn-3d bg-rose-600/80 hover:bg-rose-500 py-3 rounded-xl font-black text-lg shadow-[0_3px_0_#4c0519]">⌫</button>
+                    <button onclick="numpadPress('0')" class="btn-3d bg-space-700 hover:bg-space-600 py-3 rounded-xl font-black text-xl shadow-[0_3px_0_#0b0e24]">0</button>
+                    <button onclick="numpadSubmit()" class="btn-3d bg-gradient-to-b from-emerald-400 to-green-600 text-space-950 py-3 rounded-xl font-black text-lg shadow-[0_3px_0_#064e3b]">ОГОНЬ!</button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ЭКРАН 3: ШПАРГАЛКА-РАДАР (ИНТЕРАКТИВНАЯ ТАБЛИЦА 10x10)    -->
+        <!-- ========================================================= -->
+        <section id="view-radar" class="hidden flex-1 flex flex-col lg:flex-row gap-4 pb-6">
+            
+            <!-- Таблица 10x10 -->
+            <div class="glass-panel rounded-3xl p-3 sm:p-5 flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-black text-neon-green">Космический Радар 10×10</h2>
+                        <p class="text-xs sm:text-sm text-gray-300">Нажми на любую клетку, чтобы увидеть, как работает умножение!</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto pb-2 flex-1 flex items-center justify-center">
+                    <div id="radar-grid" class="grid grid-cols-11 gap-1 sm:gap-1.5 min-w-[320px] w-full max-w-xl">
+                        <!-- Генерируется JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Визуализатор смысла умножения -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-5 lg:w-96 flex flex-col justify-between">
+                <div>
+                    <div class="inline-block bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold px-3 py-1 rounded-full mb-2">
+                        Секрет Умножения
+                    </div>
+                    <h3 id="radar-formula" class="text-3xl sm:text-4xl font-black text-white mb-1">
+                        3 × 4 = 12
+                    </h3>
+                    <p id="radar-explanation" class="text-sm font-bold text-cyan-200 mb-4">
+                        Это 3 группы по 4 звезды в каждой!
+                    </p>
+
+                    <!-- Контейнер с наглядными группами звёзд -->
+                    <div id="radar-visual-groups" class="bg-space-950/80 border border-white/10 rounded-2xl p-3 min-h-[180px] flex flex-wrap gap-2 items-center justify-center content-center">
+                        <!-- Заполняется JS -->
+                    </div>
+                </div>
+
+                <div class="mt-4 bg-indigo-950/70 border border-indigo-400/30 rounded-2xl p-3 text-xs text-indigo-200 font-semibold">
+                    💡 <b>Лайфхак от Мурзика:</b> От перестановки множителей произведение не меняется! <b>3 × 4</b> и <b>4 × 3</b> дают одинаковый результат — <b>12</b>!
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ЭКРАН 4: КОСМИЧЕСКИЙ АНГАР И МАГАЗИН ПРИЗОВ               -->
+        <!-- ========================================================= -->
+        <section id="view-hangar" class="hidden flex-1 flex flex-col gap-4 pb-6">
+            
+            <!-- Баннер Ангара -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-black text-neon-pink">Космический Ангар</h2>
+                    <p class="text-xs sm:text-sm text-gray-300 font-semibold">
+                        Трать звёздные кристаллы на крутые звездолёты, шлемы и космических питомцев!
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 bg-space-950/90 border border-pink-500/40 px-4 py-2.5 rounded-2xl shrink-0">
+                    <span class="text-xs font-bold text-gray-300">Баланс:</span>
+                    <svg class="w-6 h-6 text-neon-pink" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L4 9l8 13 8-13-8-7zm0 3.3L17.1 9 12 17.2 6.9 9 12 5.3z"/>
+                    </svg>
+                    <span id="hangar-crystals" class="text-xl font-black text-pink-300">0</span>
+                </div>
+            </div>
+
+            <!-- Карточки товаров в Ангаре -->
+            <div id="hangar-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Генерируется JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- МОДАЛЬНОЕ ОКНО: ИТОГИ МИССИИ / ВЗЛЁТ РАКЕТЫ               -->
+    <!-- ========================================================= -->
+    <div id="victory-modal" class="fixed inset-0 z-50 hidden bg-space-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel border-2 border-neon-cyan rounded-[2rem] max-w-md w-full p-6 text-center relative overflow-hidden shadow-2xl">
+            
+            <div id="modal-rocket-stage" class="h-24 flex items-center justify-center mb-2">
+                <!-- Анимированная ракета при победе -->
+            </div>
+
+            <h2 id="modal-title" class="text-2xl sm:text-3xl font-black text-white mb-1">Миссия выполнена!</h2>
+            <p id="modal-subtitle" class="text-sm font-bold text-cyan-200 mb-4">Ты отлично справился с астероидами!</p>
+
+            <!-- 3 Заработанные звезды -->
+            <div id="modal-stars" class="flex justify-center gap-3 my-4">
+                <!-- Звёзды рендерятся через JS -->
+            </div>
+
+            <!-- Статистика и награда -->
+            <div class="bg-space-900/90 border border-white/10 rounded-2xl p-4 mb-5 flex justify-around">
+                <div>
+                    <div class="text-xs text-gray-400 font-bold">Точность</div>
+                    <div id="modal-accuracy" class="text-xl font-black text-neon-green">100%</div>
+                </div>
+                <div class="w-px bg-white/10"></div>
+                <div>
+                    <div class="text-xs text-gray-400 font-bold">Награда</div>
+                    <div id="modal-reward" class="text-xl font-black text-neon-pink">+30 💎</div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeVictoryModal(false)" class="btn-3d flex-1 py-3 rounded-2xl font-extrabold bg-space-800 hover:bg-space-700 border border-white/15 text-white shadow-[0_4px_0_#0b0e24]">
+                    На карту
+                </button>
+                <button onclick="closeVictoryModal(true)" class="btn-3d flex-1 py-3 rounded-2xl font-extrabold bg-gradient-to-b from-neon-cyan to-blue-600 text-space-950 shadow-[0_4px_0_#1e3a8a]">
+                    Ещё раз! 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Всплывающее уведомление (Toast вместо alert) -->
+    <div id="toast-box" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 bg-space-800 border-2 border-neon-cyan text-white px-5 py-3 rounded-2xl font-extrabold text-sm shadow-2xl flex items-center gap-2">
+        <span id="toast-text">Уведомление</span>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           1. ЗВУКОВОЙ СИНТЕЗАТОР (WEB AUDIO API — БЕЗ ВНЕШНИХ ФАЙЛОВ)
+           ========================================================================== */
+        const SoundFX = {
+            ctx: null,
+            muted: false,
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+
+            playTone(freq, type, duration, vol = 0.15, slideTo = null) {
+                if (this.muted) return;
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    if (slideTo) {
+                        osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+                    }
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {}
+            },
+
+            click() {
+                this.playTone(520, 'sine', 0.08, 0.1, 680);
+            },
+
+            laserSuccess() {
+                // Весёлый космический аккорд
+                this.playTone(587.33, 'triangle', 0.14, 0.16, 880); // D5 -> A5
+                setTimeout(() => this.playTone(880, 'sine', 0.22, 0.16, 1174.66), 80); // A5 -> D6
+            },
+
+            gentleBoop() {
+                // Мягкий непугающий звук ошибки
+                this.playTone(240, 'sine', 0.25, 0.15, 160);
+            },
+
+            rocketLaunch() {
+                // Фанфары победы
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((n, i) => {
+                    setTimeout(() => this.playTone(n, 'triangle', 0.28, 0.18), i * 110);
+                });
+            },
+
+            buyItem() {
+                this.playTone(700, 'sine', 0.1, 0.15);
+                setTimeout(() => this.playTone(1050, 'sine', 0.25, 0.18), 90);
+            }
+        };
+
+        function toggleSound() {
+            SoundFX.muted = !SoundFX.muted;
+            document.getElementById('icon-sound-on').classList.toggle('hidden', SoundFX.muted);
+            document.getElementById('icon-sound-off').classList.toggle('hidden', !SoundFX.muted);
+            if (!SoundFX.muted) SoundFX.click();
+        }
+
+        /* ==========================================================================
+           2. ВСТРОЕННАЯ ВЕКТОРНАЯ ГРАФИКА (SVG МАСКОТ, КОРАБЛИ, ПЛАНЕТЫ)
+           ========================================================================== */
+        function getMascotSVG(mood = 'happy', hasGoldHelmet = false) {
+            // mood: 'happy' | 'excited' | 'thinking'
+            const eyeLeft = mood === 'excited' 
+                ? `<path d="M35 46 L41 40 L47 46" stroke="#00F0FF" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+                : `<circle cx="41" cy="44" r="5" fill="#00F0FF"/><circle cx="42.5" cy="42.5" r="1.8" fill="#FFF"/>`;
+            const eyeRight = mood === 'excited'
+                ? `<path d="M53 46 L59 40 L65 46" stroke="#00F0FF" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+                : `<circle cx="59" cy="44" r="5" fill="#00F0FF"/><circle cx="60.5" cy="42.5" r="1.8" fill="#FFF"/>`;
+            
+            const mouth = mood === 'excited'
+                ? `<path d="M43 54 Q50 64 57 54 Z" fill="#FF2A85"/>`
+                : mood === 'thinking'
+                ? `<circle cx="52" cy="56" r="3.5" fill="#FFD600"/>`
+                : `<path d="M44 54 Q50 60 56 54" stroke="#00E676" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+
+            const helmetStroke = hasGoldHelmet ? '#FFD600' : '#00F0FF';
+
+            return `
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-lg">
+                <!-- Антенна -->
+                <line x1="50" y1="16" x2="50" y2="6" stroke="${helmetStroke}" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="50" cy="6" r="4.5" fill="#FF2A85"/>
+                <!-- Ушки Робо-Кота -->
+                <polygon points="24,34 30,14 44,24" fill="#3B478F" stroke="${helmetStroke}" stroke-width="2.5"/>
+                <polygon points="76,34 70,14 56,24" fill="#3B478F" stroke="${helmetStroke}" stroke-width="2.5"/>
+                <!-- Голова / Шлем -->
+                <rect x="20" y="22" width="60" height="52" rx="22" fill="#1E2659" stroke="${helmetStroke}" stroke-width="4"/>
+                <!-- Экран мордочки -->
+                <rect x="27" y="30" width="46" height="34" rx="14" fill="#090D24"/>
+                <!-- Глаза и рот -->
+                ${eyeLeft}
+                ${eyeRight}
+                ${mouth}
+                <!-- Усики -->
+                <line x1="14" y1="46" x2="24" y2="48" stroke="#00F0FF" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="14" y1="53" x2="24" y2="53" stroke="#00F0FF" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="86" y1="46" x2="76" y2="48" stroke="#00F0FF" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="86" y1="53" x2="76" y2="53" stroke="#00F0FF" stroke-width="2.5" stroke-linecap="round"/>
+                <!-- Скафандр (плечи) -->
+                <path d="M26 76 Q50 84 74 76 L80 94 L20 94 Z" fill="#E2E8F0" stroke="${helmetStroke}" stroke-width="3"/>
+                <circle cx="50" cy="85" r="5" fill="#FF2A85"/>
+            </svg>`;
+        }
+
+        function getShipSVG(shipId) {
+            if (shipId === 'ship_phoenix') {
+                return `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M50 8 C66 28 72 52 72 72 L28 72 C28 52 34 28 50 8 Z" fill="#FF2A85" stroke="#FFD600" stroke-width="3"/>
+                    <polygon points="28,55 10,78 28,72" fill="#FFD600"/>
+                    <polygon points="72,55 90,78 72,72" fill="#FFD600"/>
+                    <circle cx="50" cy="44" r="10" fill="#00F0FF" stroke="#FFF" stroke-width="2.5"/>
+                    <path d="M38 72 L50 94 L62 72 Z" fill="#FF9100"/>
+                </svg>`;
+            }
+            if (shipId === 'ship_ufo') {
+                return `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M30 46 C30 26 70 26 70 46 Z" fill="#00F0FF" opacity="0.85"/>
+                    <ellipse cx="50" cy="52" rx="42" ry="14" fill="#B026FF" stroke="#00F0FF" stroke-width="3"/>
+                    <circle cx="26" cy="52" r="4" fill="#FFD600"/>
+                    <circle cx="50" cy="54" r="4" fill="#FFD600"/>
+                    <circle cx="74" cy="52" r="4" fill="#FFD600"/>
+                    <polygon points="36,65 64,65 72,88 28,88" fill="#00E676" opacity="0.3"/>
+                </svg>`;
+            }
+            if (shipId === 'ship_galaxy') {
+                return `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M50 5 L76 68 L50 58 L24 68 Z" fill="#FFD600" stroke="#FFF" stroke-width="3"/>
+                    <polygon points="24,68 8,82 32,74" fill="#00F0FF"/>
+                    <polygon points="76,68 92,82 68,74" fill="#00F0FF"/>
+                    <circle cx="50" cy="42" r="9" fill="#B026FF" stroke="#FFF" stroke-width="2"/>
+                    <path d="M40 66 L50 95 L60 66 Z" fill="#00F0FF"/>
+                </svg>`;
+            }
+            // Стартовый челнок
+            return `<svg viewBox="0 0 100 100" class="w-full h-full">
+                <path d="M50 10 C64 30 68 52 68 72 L32 72 C32 52 36 30 50 10 Z" fill="#E2E8F0" stroke="#00F0FF" stroke-width="3"/>
+                <polygon points="32,54 16,76 32,72" fill="#00F0FF"/>
+                <polygon points="68,54 84,76 68,72" fill="#00F0FF"/>
+                <circle cx="50" cy="44" r="9" fill="#1E2659" stroke="#00F0FF" stroke-width="3"/>
+                <path d="M40 72 L50 92 L60 72 Z" fill="#FFD600"/>
+            </svg>`;
+        }
+
+        /* ==========================================================================
+           3. СОСТОЯНИЕ ИГРЫ И СОХРАНЕНИЕ В LOCALSTORAGE
+           ========================================================================== */
+        const PLANETS_DATA = [
+            { id: 2, name: 'Планета Двойняшек', mult: 2, color: 'from-cyan-400 to-blue-600', ring: '#00F0FF', desc: 'Умножаем на 2' },
+            { id: 3, name: 'Тройной Сатурн', mult: 3, color: 'from-emerald-400 to-teal-600', ring: '#00E676', desc: 'Умножаем на 3' },
+            { id: 4, name: 'Квадро-Марс', mult: 4, color: 'from-orange-400 to-red-600', ring: '#FF9100', desc: 'Умножаем на 4' },
+            { id: 5, name: 'Звезда Пятёрок', mult: 5, color: 'from-yellow-300 to-amber-600', ring: '#FFD600', desc: 'Умножаем на 5' },
+            { id: 6, name: 'Шестой Гигант', mult: 6, color: 'from-purple-400 to-indigo-700', ring: '#B026FF', desc: 'Умножаем на 6' },
+            { id: 7, name: 'Семь Комет', mult: 7, color: 'from-pink-400 to-rose-600', ring: '#FF2A85', desc: 'Умножаем на 7' },
+            { id: 8, name: 'Восьмая Туманность', mult: 8, color: 'from-sky-400 to-indigo-600', ring: '#38BDF8', desc: 'Умножаем на 8' },
+            { id: 9, name: 'Девятый Нептун', mult: 9, color: 'from-fuchsia-400 to-purple-800', ring: '#E879F9', desc: 'Умножаем на 9' },
+            { id: 10, name: 'БОСС: Вся Галактика', mult: 'all', color: 'from-amber-400 via-pink-500 to-purple-700', ring: '#FFD600', desc: 'Супер-испытание (2–9)' }
+        ];
+
+        const HANGAR_ITEMS = [
+            { id: 'ship_starter', type: 'ship', name: 'Стартовый Челнок', price: 0, desc: 'Надёжный учебный корабль Академии.' },
+            { id: 'ship_phoenix', type: 'ship', name: 'Огненный Феникс', price: 60, desc: 'Сверхбыстрый перехватчик с плазменным крылом.' },
+            { id: 'ship_ufo', type: 'ship', name: 'Тарелка Пришельцев', price: 120, desc: 'Летает на антигравитации и силе знаний!' },
+            { id: 'ship_galaxy', type: 'ship', name: 'Золотой Флагман', price: 220, desc: 'Легендарный звездолёт Повелителя Галактики.' },
+            { id: 'helmet_gold', type: 'upgrade', name: 'Золотой Шлем Мурзика', price: 90, desc: 'Прокачивает скафандр твоего Робо-Кота!' },
+            { id: 'pet_star', type: 'upgrade', name: 'Карманная Звёздочка', price: 150, desc: 'Приносит +5 бонусных кристаллов за каждую миссию!' }
+        ];
+
+        const RANKS = [
+            { minStars: 0, title: 'Кадет' },
+            { minStars: 5, title: 'Космо-Пилот' },
+            { minStars: 12, title: 'Капитан' },
+            { minStars: 20, title: 'Командор' },
+            { minStars: 26, title: 'Повелитель Галактики' }
+        ];
+
+        let state = {
+            crystals: 20, // Стартовый подарок
+            stars: {},    // { 2: 3, 3: 1, ... }
+            unlocked: ['ship_starter'],
+            equippedShip: 'ship_starter',
+            inputMode: 'choice' // 'choice' | 'numpad'
+        };
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('space_mult_academy_v1');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    state = { ...state, ...parsed };
+                }
+            } catch (e) {}
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('space_mult_academy_v1', JSON.stringify(state));
+            } catch (e) {}
+            updateHUD();
+        }
+
+        /* ==========================================================================
+           4. ИНИЦИАЛИЗАЦИЯ И ОТРИСОВКА ИНТЕРФЕЙСА
+           ========================================================================== */
+        function createStarsBackground() {
+            const container = document.getElementById('stars-layer');
+            const count = 55;
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const size = Math.random() * 3 + 1.5;
+                const delay = Math.random() * 4;
+                const color = i % 5 === 0 ? '#00F0FF' : (i % 7 === 0 ? '#FFD600' : '#FFFFFF');
+                html += `<div class="absolute rounded-full animate-twinkle" style="left:${left}%; top:${top}%; width:${size}px; height:${size}px; background:${color}; animation-delay:${delay}s;"></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function updateHUD() {
+            const totalStars = Object.values(state.stars).reduce((acc, v) => acc + v, 0);
+            document.getElementById('hud-stars').textContent = `${totalStars}/27`;
+            document.getElementById('hud-crystals').textContent = state.crystals;
+            document.getElementById('hangar-crystals').textContent = state.crystals;
+
+            // Определение звания
+            let currentRank = RANKS[0].title;
+            for (const r of RANKS) {
+                if (totalStars >= r.minStars) currentRank = r.title;
+            }
+            document.getElementById('hud-rank').textContent = currentRank;
+
+            // Обновление маскота и корабля на главном экране
+            const hasGold = state.unlocked.includes('helmet_gold');
+            document.getElementById('map-mascot-container').innerHTML = getMascotSVG('happy', hasGold);
+            
+            const shipObj = HANGAR_ITEMS.find(i => i.id === state.equippedShip) || HANGAR_ITEMS[0];
+            document.getElementById('equipped-ship-name').textContent = shipObj.name;
+            document.getElementById('equipped-ship-preview').innerHTML = getShipSVG(state.equippedShip);
+        }
+
+        function renderPlanetsMap() {
+            const grid = document.getElementById('planets-grid');
+            grid.innerHTML = PLANETS_DATA.map(planet => {
+                const earned = state.stars[planet.id] || 0;
+                const isBoss = planet.mult === 'all';
+                
+                // Рисуем 3 звёздочки
+                let starsHtml = '';
+                for (let s = 1; s <= 3; s++) {
+                    const filled = s <= earned;
+                    starsHtml += `
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 ${filled ? 'text-neon-yellow drop-shadow-[0_0_6px_rgba(255,214,0,0.8)]' : 'text-space-950/60'}" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        </svg>`;
+                }
+
+                return `
+                <button onclick="startMission(${planet.id})" class="btn-3d group relative glass-panel hover:border-cyan-400/60 rounded-3xl p-4 flex flex-col items-center text-center transition-all shadow-lg overflow-hidden ${isBoss ? 'col-span-2 sm:col-span-1 border-amber-400/50' : ''}">
+                    <!-- Декоративная планета -->
+                    <div class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${planet.color} flex items-center justify-center shadow-lg mb-2.5 group-hover:scale-110 transition-transform">
+                        <!-- Кольцо вокруг планеты -->
+                        <div class="absolute w-24 sm:w-28 h-6 border-2 rounded-full -rotate-12 opacity-60 pointer-events-none" style="border-color: ${planet.ring}"></div>
+                        <span class="text-2xl sm:text-3xl font-black text-white drop-shadow-md">
+                            ${isBoss ? '👑' : '×' + planet.mult}
+                        </span>
+                    </div>
+
+                    <div class="font-black text-sm sm:text-base text-white leading-tight">${planet.name}</div>
+                    <div class="text-xs font-bold text-cyan-200/80 mb-2">${planet.desc}</div>
+
+                    <!-- Звёзды прогресса -->
+                    <div class="flex items-center gap-1 bg-space-950/60 px-3 py-1 rounded-full">
+                        ${starsHtml}
+                    </div>
+                </button>`;
+            }).join('');
+        }
+
+        function petMascot() {
+            SoundFX.laserSuccess();
+            const phrases = [
+                'Мур-мяу! Готов к космическим рекордам!',
+                'Ты знаешь, что 5 × 5 = 25? А 6 × 6 = 36!',
+                'Собери все 27 звёзд и стань Повелителем Галактики!',
+                'Загляни в «Радар 10×10», там есть крутые подсказки!'
+            ];
+            const el = document.getElementById('map-speech');
+            el.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+            const mascot = document.getElementById('map-mascot-container');
+            mascot.classList.remove('animate-bounce-short');
+            void mascot.offsetWidth;
+            mascot.classList.add('animate-bounce-short');
+        }
+
+        /* ==========================================================================
+           5. НАВИГАЦИЯ МЕЖДУ ЭКРАНАМИ
+           ========================================================================== */
+        function switchTab(tabName) {
+            SoundFX.click();
+            const views = ['map', 'game', 'radar', 'hangar'];
+            views.forEach(v => {
+                document.getElementById(`view-${v}`).classList.toggle('hidden', v !== tabName);
+            });
+
+            // Подсветка активной кнопки в шапке
+            ['map', 'radar', 'hangar'].forEach(btn => {
+                const el = document.getElementById(`nav-${btn}`);
+                if (btn === tabName) {
+                    el.className = 'nav-btn btn-3d py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-base flex items-center justify-center gap-2 bg-gradient-to-b from-cyan-400 to-blue-600 text-space-950 shadow-[0_4px_0_#1e3a8a]';
+                } else {
+                    el.className = 'nav-btn btn-3d py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-base flex items-center justify-center gap-2 bg-space-800 text-gray-200 border border-white/15 shadow-[0_4px_0_#0b0e24]';
+                }
+            });
+
+            if (tabName === 'map') renderPlanetsMap();
+            if (tabName === 'radar') renderRadarGrid();
+            if (tabName === 'hangar') renderHangar();
+        }
+
+        /* ==========================================================================
+           6. ИГРОВОЙ ПРОЦЕСС (ТРЕНИРОВКА И УМНОЕ ПОВТОРЕНИЕ)
+           ========================================================================== */
+        let session = {
+            planetId: 2,
+            queue: [],
+            totalInitial: 10,
+            solvedCount: 0,
+            mistakesCount: 0,
+            streak: 0,
+            fuel: 0,
+            currentQ: null,
+            isLocked: false,
+            numpadValue: ''
+        };
+
+        function startMission(planetId) {
+            SoundFX.click();
+            const planet = PLANETS_DATA.find(p => p.id === planetId);
+            session.planetId = planetId;
+            session.solvedCount = 0;
+            session.mistakesCount = 0;
+            session.streak = 0;
+            session.fuel = 0;
+            session.isLocked = false;
+            session.numpadValue = '';
+
+            // Формируем 10 примеров
+            let questions = [];
+            if (planet.mult === 'all') {
+                // Финальный босс: случайные примеры от 2 до 9
+                const pairs = new Set();
+                while (questions.length < 10) {
+                    const a = Math.floor(Math.random() * 8) + 2;
+                    const b = Math.floor(Math.random() * 8) + 2;
+                    const key = `${a}x${b}`;
+                    if (!pairs.has(key)) {
+                        pairs.add(key);
+                        questions.push({ a, b, answer: a * b, isRetry: false });
+                    }
+                }
+            } else {
+                // Конкретная планета: умножение на planet.mult от 1 до 10 в случайном порядке
+                const multipliers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].sort(() => Math.random() - 0.5);
+                questions = multipliers.map(m => {
+                    // Иногда меняем множители местами (например 2×4 и 4×2) для закрепления свойства
+                    const swap = Math.random() > 0.5;
+                    const a = swap ? m : planet.mult;
+                    const b = swap ? planet.mult : m;
+                    return { a, b, answer: a * b, isRetry: false };
+                });
+            }
+
+            session.queue = questions;
+            session.totalInitial = questions.length;
+
+            document.getElementById('game-planet-title').textContent = planet.name;
+            document.getElementById('fuel-rocket-icon').innerHTML = getShipSVG(state.equippedShip);
+            
+            switchTab('game');
+            updateInputModeUI();
+            nextQuestion();
+        }
+
+        function exitMission() {
+            switchTab('map');
+        }
+
+        function toggleInputMode() {
+            SoundFX.click();
+            state.inputMode = state.inputMode === 'choice' ? 'numpad' : 'choice';
+            saveState();
+            updateInputModeUI();
+        }
+
+        function updateInputModeUI() {
+            const isNumpad = state.inputMode === 'numpad';
+            document.getElementById('input-mode-label').textContent = isNumpad ? '🎯 4 Кнопки' : '🔢 Пульт';
+            document.getElementById('answers-choice-panel').classList.toggle('hidden', isNumpad);
+            document.getElementById('answers-numpad-panel').classList.toggle('hidden', !isNumpad);
+            session.numpadValue = '';
+            document.getElementById('numpad-display').textContent = '';
+        }
+
+        function nextQuestion() {
+            if (session.queue.length === 0) {
+                finishMission();
+                return;
+            }
+
+            session.isLocked = false;
+            session.currentQ = session.queue[0];
+            session.numpadValue = '';
+            document.getElementById('numpad-display').textContent = '';
+
+            // Скрываем подсказку (но если это повтор после ошибки — показываем сразу!)
+            const hintBox = document.getElementById('visual-hint-box');
+            if (session.currentQ.isRetry) {
+                showVisualHint();
+            } else {
+                hintBox.classList.add('hidden');
+            }
+
+            // Обновляем счётчики
+            const currentStep = Math.min(session.solvedCount + 1, session.totalInitial);
+            document.getElementById('game-question-counter').textContent = `${currentStep} / ${session.totalInitial}`;
+            document.getElementById('question-text').textContent = `${session.currentQ.a} × ${session.currentQ.b} = ?`;
+
+            // Маскот
+            const hasGold = state.unlocked.includes('helmet_gold');
+            document.getElementById('game-mascot').innerHTML = getMascotSVG(session.currentQ.isRetry ? 'thinking' : 'happy', hasGold);
+            document.getElementById('game-mascot-bubble').textContent = session.currentQ.isRetry 
+                ? 'Давай попробуем этот пример ещё раз! Посмотри на подсказку.'
+                : 'Сколько энергии в этом астероиде?';
+
+            updateFuelUI();
+            renderChoiceButtons();
+        }
+
+        function updateFuelUI() {
+            document.getElementById('fuel-bar').style.width = `${Math.min(session.fuel, 100)}%`;
+            const comboText = session.streak >= 2 ? `🔥 КОМБО ×${session.streak}!` : `Серия: ${session.streak}`;
+            document.getElementById('combo-badge').textContent = comboText;
+        }
+
+        function renderChoiceButtons() {
+            const correct = session.currentQ.answer;
+            const options = new Set([correct]);
+
+            // Генерируем правдоподобные дистракторы (ошибки на ±1 шаг умножения или соседние числа)
+            while (options.size < 4) {
+                const offsetType = Math.floor(Math.random() * 4);
+                let candidate;
+                if (offsetType === 0) candidate = correct + session.currentQ.a;
+                else if (offsetType === 1) candidate = Math.max(1, correct - session.currentQ.a);
+                else if (offsetType === 2) candidate = correct + (Math.floor(Math.random() * 5) + 1);
+                else candidate = Math.max(1, correct - (Math.floor(Math.random() * 4) + 1));
+                
+                if (candidate !== correct && candidate <= 100) {
+                    options.add(candidate);
+                }
+            }
+
+            const shuffled = Array.from(options).sort(() => Math.random() - 0.5);
+            const btnColors = [
+                'from-cyan-400 to-blue-600 shadow-[0_5px_0_#1e3a8a] text-space-950',
+                'from-purple-400 to-indigo-600 shadow-[0_5px_0_#312e81] text-white',
+                'from-amber-300 to-orange-500 shadow-[0_5px_0_#7c2d12] text-space-950',
+                'from-emerald-400 to-teal-600 shadow-[0_5px_0_#134e4a] text-space-950'
+            ];
+
+            const panel = document.getElementById('answers-choice-panel');
+            panel.innerHTML = shuffled.map((val, idx) => `
+                <button onclick="handleAnswer(${val}, this)" class="btn-3d py-4 sm:py-5 rounded-3xl font-black text-2xl sm:text-4xl bg-gradient-to-b ${btnColors[idx]} transition-all">
+                    ${val}
+                </button>
+            `).join('');
+        }
+
+        // Логика цифрового пульта
+        function numpadPress(digit) {
+            if (session.isLocked) return;
+            SoundFX.click();
+            if (session.numpadValue.length < 3) {
+                session.numpadValue += digit;
+                document.getElementById('numpad-display').textContent = session.numpadValue;
+            }
+        }
+        function numpadClear() {
+            if (session.isLocked) return;
+            SoundFX.click();
+            session.numpadValue = session.numpadValue.slice(0, -1);
+            document.getElementById('numpad-display').textContent = session.numpadValue;
+        }
+        function numpadSubmit() {
+            if (session.isLocked || session.numpadValue === '') return;
+            handleAnswer(parseInt(session.numpadValue, 10), null);
+        }
+
+        function handleAnswer(userVal, btnEl) {
+            if (session.isLocked) return;
+            const isCorrect = userVal === session.currentQ.answer;
+            const card = document.getElementById('asteroid-card');
+            const hasGold = state.unlocked.includes('helmet_gold');
+
+            if (isCorrect) {
+                session.isLocked = true;
+                SoundFX.laserSuccess();
+
+                // Обновляем статистику
+                session.streak++;
+                session.fuel = Math.min(100, session.fuel + 12 + Math.min(session.streak * 2, 10));
+                if (!session.currentQ.isRetry) {
+                    session.solvedCount++;
+                } else {
+                    session.solvedCount++;
+                }
+
+                // Начисляем кристаллы сразу за каждый верный ответ
+                const bonus = session.streak >= 3 ? 3 : 2;
+                state.crystals += bonus;
+                saveState();
+
+                // Визуальные эффекты победы над астероидом
+                document.getElementById('question-text').textContent = `${session.currentQ.a} × ${session.currentQ.b} = ${session.currentQ.answer}`;
+                card.classList.add('border-neon-green', 'scale-105');
+                if (btnEl) {
+                    btnEl.className = 'btn-3d py-4 sm:py-5 rounded-3xl font-black text-2xl sm:text-4xl bg-neon-green text-space-950 shadow-[0_5px_0_#065f46] scale-105';
+                }
+
+                document.getElementById('game-mascot').innerHTML = getMascotSVG('excited', hasGold);
+                const praises = ['Супер! Точно в цель!', 'Космическая скорость!', 'Блестяще, Кадет!', 'Мощный лазерный залп!'];
+                document.getElementById('game-mascot-bubble').textContent = praises[Math.floor(Math.random() * praises.length)];
+
+                showFloatingText(`+${bonus} 💎`);
+                updateFuelUI();
+
+                // Убираем решённый вопрос из очереди
+                session.queue.shift();
+
+                setTimeout(() => {
+                    card.classList.remove('border-neon-green', 'scale-105');
+                    nextQuestion();
+                }, 750);
+
+            } else {
+                // Ошибка: мягкая обратная связь + умное повторение
+                SoundFX.gentleBoop();
+                session.streak = 0;
+                session.mistakesCount++;
+                updateFuelUI();
+
+                card.classList.remove('animate-shake');
+                void card.offsetWidth;
+                card.classList.add('animate-shake', 'border-neon-coral');
+
+                if (btnEl) {
+                    btnEl.disabled = true;
+                    btnEl.className = 'py-4 sm:py-5 rounded-3xl font-black text-2xl sm:text-4xl bg-rose-900/60 border-2 border-rose-500/50 text-rose-300 opacity-60';
+                } else {
+                    session.numpadValue = '';
+                    document.getElementById('numpad-display').textContent = '';
+                }
+
+                document.getElementById('game-mascot').innerHTML = getMascotSVG('thinking', hasGold);
+                document.getElementById('game-mascot-bubble').textContent = 'Не страшно! Посчитай группы звёзд внизу и попробуй ещё!';
+                
+                // Показываем наглядную подсказку
+                showVisualHint();
+
+                // Ставим этот же вопрос на повтор через 2 шага, если он ещё не помечен как повтор
+                if (!session.currentQ.isRetry) {
+                    const retryQ = { ...session.currentQ, isRetry: true };
+                    const insertPos = Math.min(2, session.queue.length);
+                    session.queue.splice(insertPos, 0, retryQ);
+                }
+
+                setTimeout(() => {
+                    card.classList.remove('border-neon-coral');
+                }, 600);
+            }
+        }
+
+        function showVisualHint() {
+            const q = session.currentQ;
+            if (!q) return;
+            const box = document.getElementById('visual-hint-box');
+            const caption = document.getElementById('visual-hint-caption');
+            const dots = document.getElementById('visual-hint-dots');
+
+            caption.textContent = `${q.a} ${pluralizeGroups(q.a)} по ${q.b} ${pluralizeStars(q.b)}:`;
+            
+            let html = '';
+            for (let g = 0; g < q.a; g++) {
+                let starsInGroup = '';
+                for (let s = 0; s < q.b; s++) {
+                    starsInGroup += `<span class="inline-block w-2.5 h-2.5 rounded-full bg-neon-yellow shadow-[0_0_4px_#FFD600]"></span>`;
+                }
+                html += `<div class="flex flex-wrap gap-1 bg-space-800 border border-cyan-400/30 px-2 py-1.5 rounded-xl max-w-[90px] justify-center">${starsInGroup}</div>`;
+            }
+            dots.innerHTML = html;
+            box.classList.remove('hidden');
+        }
+
+        function showFloatingText(text) {
+            const el = document.getElementById('floating-feedback');
+            el.textContent = text;
+            el.classList.remove('opacity-0', '-translate-y-4');
+            el.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                el.classList.remove('opacity-100', 'translate-y-0');
+                el.classList.add('opacity-0', '-translate-y-4');
+            }, 650);
+        }
+
+        function finishMission() {
+            SoundFX.rocketLaunch();
+            
+            // Расчёт точности и звёзд (1..3)
+            const totalAttempts = session.solvedCount + session.mistakesCount;
+            const accuracy = Math.round((session.solvedCount / Math.max(1, totalAttempts)) * 100);
+            
+            let earnedStars = 1;
+            if (accuracy >= 90) earnedStars = 3;
+            else if (accuracy >= 70) earnedStars = 2;
+
+            // Сохраняем лучший результат планеты
+            const prevStars = state.stars[session.planetId] || 0;
+            if (earnedStars > prevStars) {
+                state.stars[session.planetId] = earnedStars;
+            }
+
+            // Бонус за завершение миссии
+            const petBonus = state.unlocked.includes('pet_star') ? 5 : 0;
+            const missionReward = earnedStars * 10 + petBonus;
+            state.crystals += missionReward;
+            saveState();
+
+            // Заполняем модальное окно победы
+            document.getElementById('modal-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('modal-reward').textContent = `+${missionReward} 💎`;
+            
+            const rocketStage = document.getElementById('modal-rocket-stage');
+            rocketStage.innerHTML = `<div class="w-20 h-20 animate-bounce-short">${getShipSVG(state.equippedShip)}</div>`;
+
+            let starsHtml = '';
+            for (let i = 1; i <= 3; i++) {
+                const active = i <= earnedStars;
+                starsHtml += `
+                    <svg class="w-12 h-12 ${active ? 'text-neon-yellow scale-110 drop-shadow-[0_0_12px_rgba(255,214,0,0.9)]' : 'text-space-800'}" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>`;
+            }
+            document.getElementById('modal-stars').innerHTML = starsHtml;
+            document.getElementById('victory-modal').classList.remove('hidden');
+        }
+
+        function closeVictoryModal(replay) {
+            document.getElementById('victory-modal').classList.add('hidden');
+            if (replay) {
+                startMission(session.planetId);
+            } else {
+                switchTab('map');
+            }
+        }
+
+        /* ==========================================================================
+           7. ИНТЕРАКТИВНЫЙ РАДАР 10x10 (ШПАРГАЛКА)
+           ========================================================================== */
+        let selectedRadar = { r: 3, c: 4 };
+
+        function renderRadarGrid() {
+            const grid = document.getElementById('radar-grid');
+            let html = '';
+
+            for (let r = 0; r <= 10; r++) {
+                for (let c = 0; c <= 10; c++) {
+                    if (r === 0 && c === 0) {
+                        html += `<div class="aspect-square rounded-lg bg-space-950 flex items-center justify-center font-black text-neon-cyan text-xs sm:text-sm">×</div>`;
+                    } else if (r === 0) {
+                        const isColHighlight = c === selectedRadar.c;
+                        html += `<div class="aspect-square rounded-lg ${isColHighlight ? 'bg-neon-cyan text-space-950 scale-105' : 'bg-space-800 text-cyan-300'} flex items-center justify-center font-black text-xs sm:text-sm transition-all">${c}</div>`;
+                    } else if (c === 0) {
+                        const isRowHighlight = r === selectedRadar.r;
+                        html += `<div class="aspect-square rounded-lg ${isRowHighlight ? 'bg-neon-cyan text-space-950 scale-105' : 'bg-space-800 text-cyan-300'} flex items-center justify-center font-black text-xs sm:text-sm transition-all">${r}</div>`;
+                    } else {
+                        const val = r * c;
+                        const isTarget = r === selectedRadar.r && c === selectedRadar.c;
+                        const isCross = (r === selectedRadar.r && c < selectedRadar.c) || (c === selectedRadar.c && r < selectedRadar.r);
+                        
+                        let cellClass = 'bg-space-900/90 text-gray-200 hover:bg-space-700 border border-white/5';
+                        if (isTarget) {
+                            cellClass = 'bg-gradient-to-br from-neon-yellow to-amber-500 text-space-950 font-black scale-110 z-10 shadow-[0_0_15px_rgba(255,214,0,0.8)]';
+                        } else if (isCross) {
+                            cellClass = 'bg-cyan-500/30 text-white border border-cyan-400/40';
+                        }
+
+                        html += `<button onclick="selectRadarCell(${r}, ${c})" class="aspect-square rounded-lg ${cellClass} flex items-center justify-center font-bold text-xs sm:text-sm transition-all">${val}</button>`;
+                    }
+                }
+            }
+            grid.innerHTML = html;
+            updateRadarVisualizer();
+        }
+
+        function selectRadarCell(r, c) {
+            SoundFX.click();
+            selectedRadar = { r, c };
+            renderRadarGrid();
+        }
+
+        function updateRadarVisualizer() {
+            const { r, c } = selectedRadar;
+            const prod = r * c;
+            document.getElementById('radar-formula').textContent = `${r} × ${c} = ${prod}`;
+            document.getElementById('radar-explanation').textContent = `Это ${r} ${pluralizeGroups(r)} по ${c} ${pluralizeStars(c)} в каждой:`;
+
+            const container = document.getElementById('radar-visual-groups');
+            let groupsHtml = '';
+            for (let i = 0; i < r; i++) {
+                let dots = '';
+                for (let j = 0; j < c; j++) {
+                    dots += `<span class="w-2.5 h-2.5 rounded-full bg-neon-green inline-block"></span>`;
+                }
+                groupsHtml += `<div class="bg-space-800 border border-emerald-400/30 rounded-xl px-2 py-1.5 flex flex-wrap gap-1 max-w-[85px] justify-center">${dots}</div>`;
+            }
+            container.innerHTML = groupsHtml;
+        }
+
+        /* ==========================================================================
+           8. КОСМИЧЕСКИЙ АНГАР (МАГАЗИН)
+           ========================================================================== */
+        function renderHangar() {
+            const grid = document.getElementById('hangar-grid');
+            grid.innerHTML = HANGAR_ITEMS.map(item => {
+                const isUnlocked = state.unlocked.includes(item.id);
+                const isEquipped = state.equippedShip === item.id;
+
+                let previewSvg = '';
+                if (item.type === 'ship') {
+                    previewSvg = getShipSVG(item.id);
+                } else if (item.id === 'helmet_gold') {
+                    previewSvg = getMascotSVG('excited', true);
+                } else {
+                    previewSvg = `<svg viewBox="0 0 100 100" class="w-full h-full"><polygon points="50,10 61,38 92,38 67,56 76,86 50,68 24,86 33,56 8,38 39,38" fill="#FFD600" stroke="#FFF" stroke-width="3"/></svg>`;
+                }
+
+                let actionBtn = '';
+                if (item.type === 'ship') {
+                    if (isEquipped) {
+                        actionBtn = `<button disabled class="w-full py-2.5 rounded-2xl font-extrabold text-sm bg-emerald-500/20 border border-emerald-400 text-emerald-300">✓ Выбран</button>`;
+                    } else if (isUnlocked) {
+                        actionBtn = `<button onclick="equipShip('${item.id}')" class="btn-3d w-full py-2.5 rounded-2xl font-extrabold text-sm bg-cyan-400 text-space-950 shadow-[0_4px_0_#1e3a8a]">Выбрать корабль</button>`;
+                    } else {
+                        actionBtn = `<button onclick="buyItem('${item.id}')" class="btn-3d w-full py-2.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-[0_4px_0_#4c1d95]">Купить за ${item.price} 💎</button>`;
+                    }
+                } else {
+                    if (isUnlocked) {
+                        actionBtn = `<button disabled class="w-full py-2.5 rounded-2xl font-extrabold text-sm bg-emerald-500/20 border border-emerald-400 text-emerald-300">✓ Активировано</button>`;
+                    } else {
+                        actionBtn = `<button onclick="buyItem('${item.id}')" class="btn-3d w-full py-2.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-[0_4px_0_#4c1d95]">Купить за ${item.price} 💎</button>`;
+                    }
+                }
+
+                return `
+                <div class="glass-panel rounded-3xl p-4 flex flex-col justify-between items-center text-center ${isEquipped ? 'border-neon-cyan' : ''}">
+                    <div class="w-24 h-24 my-2 animate-float">${previewSvg}</div>
+                    <div>
+                        <h3 class="font-black text-base sm:text-lg text-white">${item.name}</h3>
+                        <p class="text-xs text-gray-300 font-semibold mt-1 mb-4">${item.desc}</p>
+                    </div>
+                    ${actionBtn}
+                </div>`;
+            }).join('');
+        }
+
+        function buyItem(itemId) {
+            const item = HANGAR_ITEMS.find(i => i.id === itemId);
+            if (!item || state.unlocked.includes(itemId)) return;
+
+            if (state.crystals >= item.price) {
+                SoundFX.buyItem();
+                state.crystals -= item.price;
+                state.unlocked.push(itemId);
+                if (item.type === 'ship') {
+                    state.equippedShip = itemId;
+                }
+                saveState();
+                renderHangar();
+                showToast(`Ура! Получено: ${item.name}! 🎉`);
+            } else {
+                SoundFX.gentleBoop();
+                const need = item.price - state.crystals;
+                showToast(`Не хватает ещё ${need} 💎. Выполняй миссии на планетах!`);
+            }
+        }
+
+        function equipShip(shipId) {
+            SoundFX.click();
+            state.equippedShip = shipId;
+            saveState();
+            renderHangar();
+            showToast('Звездолёт готов к вылету! 🚀');
+        }
+
+        /* ==========================================================================
+           9. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (СКЛОНЕНИЯ И УВЕДОМЛЕНИЯ)
+           ========================================================================== */
+        function pluralizeGroups(n) {
+            if (n === 1) return 'группа';
+            if (n >= 2 && n <= 4) return 'группы';
+            return 'групп';
+        }
+
+        function pluralizeStars(n) {
+            if (n === 1) return 'звезде';
+            return 'звёзды';
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const box = document.getElementById('toast-box');
+            document.getElementById('toast-text').textContent = msg;
+            box.classList.remove('opacity-0', 'translate-y-4');
+            box.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                box.classList.remove('opacity-100', 'translate-y-0');
+                box.classList.add('opacity-0', 'translate-y-4');
+            }, 2600);
+        }
+
+        // Запуск приложения при загрузке страницы
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            createStarsBackground();
+            updateHUD();
+            renderPlanetsMap();
+        });
+    </script>
+</body>
+</html>
